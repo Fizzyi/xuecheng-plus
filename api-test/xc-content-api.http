@@ -10,3 +10,7 @@ Content-Type: application/json
 <> 2025-07-08T111611.200.json
 <> 2025-07-08T111552.404.html
 <> 2025-07-08T111531.404.html
+
+
+### 课程分类查询
+GET {{content_host}}/content/course-category/tree-nodes
