@@ -10,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -30,6 +31,7 @@ public class TeachplanServiceImpl implements TeachplanService {
             // 修改
             Teachplan teachplan = teachplanMapper.selectById(dto.getId());
             BeanUtils.copyProperties(dto, teachplan);
+            teachplan.setChangeDate(LocalDateTime.now());
             teachplanMapper.updateById(teachplan);
         } else {
             // 新增
@@ -39,6 +41,7 @@ public class TeachplanServiceImpl implements TeachplanService {
             // 设置排序号
             teachplan.setOrderby(count + 1);
             BeanUtils.copyProperties(dto, teachplan);
+            teachplan.setCreateDate(LocalDateTime.now());
             teachplanMapper.insert(teachplan);
         }
     }
