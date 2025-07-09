@@ -2,6 +2,7 @@ package com.xuecheng.content.service;
 
 import com.xuecheng.content.model.dto.AddCourseDto;
 import com.xuecheng.content.model.dto.CourseBaseInfoDto;
+import com.xuecheng.content.model.dto.EditCourseDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.base.model.*;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
@@ -29,4 +30,21 @@ public interface CourseBaseInfoService {
      * @return CourseBaseInfoDto
      */
     CourseBaseInfoDto createCourseBaseInfo(Long companyId, AddCourseDto addCourseDto);
+
+    /**
+     * 根据课程id查询课程信息
+     *
+     * @param courseId 课程Id
+     * @return CourseBaseInfoDto
+     */
+    CourseBaseInfoDto getCourseBaseInfo(Long courseId);
+
+    /**
+     * 修改课程信息
+     *
+     * @param companyId     教学机构Id
+     * @param editCourseDto 课程信息
+     * @return CourseBaseInfoDto
+     */
+    CourseBaseInfoDto updateCourseBase(Long companyId, EditCourseDto editCourseDto);
 }

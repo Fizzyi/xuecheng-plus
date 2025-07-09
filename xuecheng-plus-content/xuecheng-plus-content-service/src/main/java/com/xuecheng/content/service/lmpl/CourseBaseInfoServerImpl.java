@@ -9,6 +9,7 @@ import com.xuecheng.content.mapper.CourseCategoryMapper;
 import com.xuecheng.content.mapper.CourseMarketMapper;
 import com.xuecheng.content.model.dto.AddCourseDto;
 import com.xuecheng.content.model.dto.CourseBaseInfoDto;
+import com.xuecheng.content.model.dto.EditCourseDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.model.po.CourseCategory;
@@ -148,5 +149,27 @@ public class CourseBaseInfoServerImpl implements CourseBaseInfoService {
         CourseCategory courseCategoryByMt = courseCategoryMapper.selectById(courseBase.getMt());
         courseBaseInfoDto.setMtName(courseCategoryByMt.getName());
         return courseBaseInfoDto;
+    }
+
+    @Override
+    public CourseBaseInfoDto updateCourseBase(Long companyId, EditCourseDto editCourseDto) {
+        CourseBase courseBase = courseBaseMapper.selectById(editCourseDto.getId());
+        if (courseBase == null) {
+            throw new XueChengPlusException("课程不存在");
+        }
+        // 校验是否是本机构的课程
+        if (!courseBase.getCompanyId().equals(companyId)) {
+            throw new XueChengPlusException("课程不属于本机构");
+        }
+        BeanUtils.copyProperties(editCourseDto, courseBase);
+        // 更新课程信息
+        courseBase.setChangeDate(LocalDateTime.now());
+        int update = courseBaseMapper.updateById(courseBase);
+        // 更新营销信息
+        CourseMarket courseMarket = new CourseMarket();
+        BeanUtils.copyProperties(editCourseDto, courseMarket);
+        saveCourseMarket(courseMarket);
+        // 查询最新的课程信息
+        return getCourseBaseInfo(editCourseDto.getId());
     }
 }
