@@ -32,4 +32,12 @@ public interface TeachplanService {
      * @param id 课程计划id
      */
     void deleteTeachplan(Long id);
+
+    /**
+     * 课程计划上下移动
+     *
+     * @param moveWay 向上或者向下 movedown(向下移动) 或 moveup(向上移动)
+     * @param id      课程计划id
+     */
+    void updateTeachplanMove(String moveWay, Long id);
 }

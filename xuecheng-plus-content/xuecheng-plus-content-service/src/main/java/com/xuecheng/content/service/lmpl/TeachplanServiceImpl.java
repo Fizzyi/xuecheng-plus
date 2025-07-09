@@ -9,6 +9,7 @@ import com.xuecheng.content.model.dto.TeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
 import com.xuecheng.content.model.po.TeachplanMedia;
 import com.xuecheng.content.service.TeachplanService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
+@Slf4j
 @Service
 public class TeachplanServiceImpl implements TeachplanService {
 
@@ -74,6 +75,44 @@ public class TeachplanServiceImpl implements TeachplanService {
             teachplanMediaMapper.delete(lambdaQueryWrapper);
             teachplanMapper.deleteById(id);
         }
+    }
+
+    @Override
+    public void updateTeachplanMove(String moveWay, Long id) {
+        // 取出当前课程计划
+        Teachplan teachplan = teachplanMapper.selectById(id);
+        if (teachplan == null) {
+            throw new XueChengPlusException("课程计划不存在");
+        }
+        Teachplan teachplan1 = null;
+        int orderby = 0;
+        LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Teachplan::getCourseId, teachplan.getCourseId());
+        queryWrapper.eq(Teachplan::getParentid, teachplan.getParentid());
+        if (moveWay.equals("movedown")) {
+            // 向下移动
+            // 找到当前课程计划的下一个课程计划
+            queryWrapper.gt(Teachplan::getOrderby, teachplan.getOrderby()).orderByAsc(Teachplan::getOrderby).last("LIMIT 1");
+            teachplan1 = teachplanMapper.selectOne(queryWrapper);
+            if (teachplan1 == null) {
+                throw new XueChengPlusException("下面没有课程计划了");
+            }
+            // 交换两个课程计划的排序号
+            orderby = teachplan.getOrderby();
+        } else {
+            // 向上移动
+            // 找到当前课程计划的上一个课程计划
+            queryWrapper.lt(Teachplan::getOrderby, teachplan.getOrderby()).orderByDesc(Teachplan::getOrderby).last("LIMIT 1");
+            teachplan1 = teachplanMapper.selectOne(queryWrapper);
+            if (teachplan1 == null) {
+                throw new XueChengPlusException("上面没有课程计划了");
+            }
+            orderby = teachplan.getOrderby();
+        }
+        teachplan.setOrderby(teachplan1.getOrderby());
+        teachplan1.setOrderby(orderby);
+        teachplanMapper.updateById(teachplan1);
+        teachplanMapper.updateById(teachplan);
     }
 
     /**
