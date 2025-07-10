@@ -1,9 +1,25 @@
 spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://121.43.238.143:8036/test?serverTimezone=UTC&userUnicode=true&useSSL=false&
-    username: test
-    password: qwer1234!
-# 日志文件配置路径
-logging:
-  config: classpath:log4j2-dev.xml
+  application:
+    name: content-service
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+      discovery:
+        namespace: dev
+        group: xuecheng-plus-project
+      config:
+        namespace: dev
+        group: xuecheng-plus-project
+        file-extension: yaml
+        refresh-enabled: true
+        shared-configs:
+          - data-id: swagger-${spring.profiles.active}.yaml # 指定swagger配置
+            group: xuecheng-plus-common
+            refresh: true
+          - data-id: logging-${spring.profiles.active}.yaml # 指定日志配置
+            group: xuecheng-plus-common
+            refresh: true
+
+#profiles默认为dev
+  profiles:
+    active: dev

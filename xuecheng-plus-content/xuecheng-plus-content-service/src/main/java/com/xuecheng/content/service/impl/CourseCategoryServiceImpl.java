@@ -1,4 +1,4 @@
-package com.xuecheng.content.service.lmpl;
+package com.xuecheng.content.service.impl;
 
 
 import com.xuecheng.content.mapper.CourseCategoryMapper;
