@@ -7,3 +7,11 @@
 
 （2）文献
 链接：https://aigz8jy30yo.feishu.cn/docx/VGoudR1Y3oMA1Rxx6ABcjq8nnnb
+
+## 知识点记录
+
+1、Springboot读取配置文件的顺序
+
+（1）项目启动加载bootstrap.yml文件,获取nacos地址，配置文件id，读取nacos中的配置文件
+
+（2）读取本地配置文件application.yml，与nacos中的配置文件合并
