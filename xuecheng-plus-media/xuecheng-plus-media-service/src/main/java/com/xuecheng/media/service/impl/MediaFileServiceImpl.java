@@ -19,6 +19,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -65,7 +66,6 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Override
     public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, MultipartFile file) {
-
         // 文件名称
         String filename = uploadFileParamsDto.getFilename();
         // 文件扩展名
@@ -79,12 +79,15 @@ public class MediaFileServiceImpl implements MediaFileService {
         // 存储到minio的对象名
         String ObjectName = defaultFolderPath + fileMd5 + extension;
         // 将文件上传到minio
-        Boolean b = fileStorageService.fileUpload(file, "/test/");
+        Boolean b = fileStorageService.fileUpload(file, "test/");
         // 文件大小
         uploadFileParamsDto.setFileSize(file.getSize());
         // 将文件信息保存到数据库
         MediaFiles mediaFiles = addMediaFilesToDb(companyId, fileMd5, uploadFileParamsDto, ObjectName);
-        return null;
+        // 准备返回数据
+        UploadFileResultDto uploadFileResultDto = new UploadFileResultDto();
+        BeanUtils.copyProperties(mediaFiles, uploadFileResultDto);
+        return uploadFileResultDto;
     }
 
     /**
@@ -96,7 +99,8 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param objectName
      * @return
      */
-    private MediaFiles addMediaFilesToDb(Long companyId, String fileMd5, UploadFileParamsDto dto, String objectName) {
+    @Transactional
+    public MediaFiles addMediaFilesToDb(Long companyId, String fileMd5, UploadFileParamsDto dto, String objectName) {
         MediaFiles mediaFile = mediaFilesMapper.selectById(fileMd5);
         if (mediaFile == null) {
             mediaFile = new MediaFiles();
@@ -105,7 +109,6 @@ public class MediaFileServiceImpl implements MediaFileService {
             mediaFile.setFileId(fileMd5);
             mediaFile.setCompanyId(companyId);
             mediaFile.setUrl("/" + companyId + "/" + fileMd5 + "/" + objectName);
-//            mediaFile.setBucket("");
             mediaFile.setFilePath(objectName);
             mediaFile.setCreateDate(LocalDateTime.now());
             mediaFile.setAuditStatus("002003");
@@ -115,17 +118,10 @@ public class MediaFileServiceImpl implements MediaFileService {
                 throw new XueChengPlusException("保存文件信息失败");
             }
             log.info("保存文件信息成功，文件id：{}", mediaFile.getId());
-
         }
-        return null;
+        return mediaFile;
     }
 
-    private boolean uploadFileToMinIO(String localFilePath, String mimeType, String objectName) {
-        // 保存文件
-
-
-        return true;
-    }
 
     private String getDefaultFolderPath() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

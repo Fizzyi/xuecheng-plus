@@ -35,7 +35,7 @@ public interface MediaFileService {
      *
      * @param companyId           机构Id
      * @param uploadFileParamsDto 上传文件信息
-     * @param localFilePath       文件磁盘路径
+     * @param file       文件磁盘路径
      * @return 文件信息
      */
     public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, MultipartFile file);

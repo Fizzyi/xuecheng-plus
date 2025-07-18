@@ -85,7 +85,7 @@ public interface IFileStorageService {
      */
     default String generateFileNameByType(String fileType) {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
-        return uuid + "_" + fileType;
+        return uuid + "." + fileType;
     }
 
     /**

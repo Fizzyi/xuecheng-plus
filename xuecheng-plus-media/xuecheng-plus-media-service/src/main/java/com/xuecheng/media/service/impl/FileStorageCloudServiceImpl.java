@@ -69,39 +69,39 @@ public class FileStorageCloudServiceImpl implements IFileStorageService {
     @Override
     public Boolean fileUpload(MultipartFile file, String path) {
         // 设置文件 key
-//        String originalFilename = file.getOriginalFilename();
-//        String fileType = FilenameUtils.getExtension(originalFilename);
-//        String fileKey = path + this.generateFileName(originalFilename);
-//        // 文件名称 URL 编码
-//        String urlEncoderFilename;
-//        try {
-//            urlEncoderFilename = URLEncoder.encode(originalFilename, StandardCharsets.UTF_8.name());
-//        } catch (UnsupportedEncodingException e) {
-//            log.error("阿里云文件上传服务URL ENCODE-发生异常：", e);
-//            return false;
-//        }
-//        ObjectMetadata meta = new ObjectMetadata();
-//        meta.setContentEncoding(StandardCharsets.UTF_8.name());
-//        meta.setContentDisposition("attachment;filename=" + urlEncoderFilename);
-//        Map<String, String> userMetadata = new HashMap(10);
-//        userMetadata.put(USER_METADATA_FILE_NAME, urlEncoderFilename);
-//        userMetadata.put(USER_METADATA_FILE_FORMAT, fileType);
-//        userMetadata.put(USER_METADATA_FILE_SIZE, String.valueOf(file.getSize()));
-//        meta.setUserMetadata(userMetadata);
-//        meta.setContentLength(file.getSize());
-//        meta.setContentType(this.getContentType(fileType));
-//        // todo 完善文件上传
-//        try {
-//            amazonS3.putObject(cloudConfig.getBucketName(), fileKey, file.getInputStream(), meta);
-//        } catch (IOException e) {
-//            log.error("文件上传-发生异常：", e);
-//            return false;
-//        }
-        return true;
-        // 根据文件路径获取并设置访问权限
+        String originalFilename = file.getOriginalFilename();
+        String fileType = FilenameUtils.getExtension(originalFilename);
+        String fileKey = path + this.generateFileName(originalFilename);
+        // 文件名称 URL 编码
+        String urlEncoderFilename;
+        try {
+            urlEncoderFilename = URLEncoder.encode(originalFilename, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            log.error("阿里云文件上传服务URL ENCODE-发生异常：", e);
+            return false;
+        }
+        ObjectMetadata meta = new ObjectMetadata();
+        meta.setContentEncoding(StandardCharsets.UTF_8.name());
+        meta.setContentDisposition("attachment;filename=" + urlEncoderFilename);
+        Map<String, String> userMetadata = new HashMap(10);
+        userMetadata.put(USER_METADATA_FILE_NAME, urlEncoderFilename);
+        userMetadata.put(USER_METADATA_FILE_FORMAT, fileType);
+        userMetadata.put(USER_METADATA_FILE_SIZE, String.valueOf(file.getSize()));
+        meta.setUserMetadata(userMetadata);
+        meta.setContentLength(file.getSize());
+        meta.setContentType(this.getContentType(fileType));
+        // todo 完善文件上传
+        try {
+            log.info("上传日志：{},{},{}", cloudConfig.getBucketName(), fileKey, meta);
+            amazonS3.putObject(cloudConfig.getBucketName(), fileKey, file.getInputStream(), meta);
+        } catch (IOException e) {
+            log.error("文件上传-发生异常：", e);
+            return false;
+        }
+////         根据文件路径获取并设置访问权限
 //        CannedAccessControlList acl = this.getACL(path);
 //        amazonS3.setObjectAcl(cloudConfig.getBucketName(), fileKey, acl);
-        // 返回上传结果
+////         返回上传结果
 //        FileUploadVO uploadVO = new FileUploadVO();
 //        uploadVO.setFileName(originalFilename);
 //        uploadVO.setFileType(fileType);
@@ -115,6 +115,7 @@ public class FileStorageCloudServiceImpl implements IFileStorageService {
 //        uploadVO.setFileKey(fileKey);
 //        uploadVO.setFileSize(file.getSize());
 //        return ResponseDTO.ok(uploadVO);
+        return true;
     }
 
     /**
@@ -216,8 +217,6 @@ public class FileStorageCloudServiceImpl implements IFileStorageService {
 //        amazonS3.deleteObject(cloudConfig.getBucketName(), fileKey);
 //        return ResponseDTO.ok();
 //    }
-
-
     @Override
     public Long cacheExpireSecond() {
         return cloudConfig.getUrlExpire() - 1800;
