@@ -1,5 +1,5 @@
 package com.xuecheng.media.service.impl;
-
+import org.springframework.mock.web.MockMultipartFile;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuecheng.base.execption.XueChengPlusException;
@@ -128,7 +128,7 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     @Override
-    public RestResponse uploadChunk(String fileMd5, int chunk, MultipartFile file) {
+    public RestResponse<Boolean> uploadChunk(String fileMd5, int chunk, MultipartFile file) {
         // 构建保存文件的路径，这里假设以文件MD5值和分块序号构建路径
         String uploadDir = "uploads/" + fileMd5 + "/" + chunk;
         Path uploadPath = Paths.get(uploadDir);
@@ -153,8 +153,59 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     @Override
-    public RestResponse mergeChunks(Long companyId, String fileMd5, int chunkTotal, UploadFileParamsDto uploadFileParamsDto) {
-        return null;
+    public RestResponse<String> mergeChunks(Long companyId, String fileMd5, int chunkTotal, UploadFileParamsDto uploadFileParamsDto) {
+        // 分块文件存储路径
+        String chunkFileFolderPath = "uploads/" + fileMd5 + "/";
+        // 合并后的文件名
+        String fileName = uploadFileParamsDto.getFilename();
+        String extName = fileName.substring(fileName.lastIndexOf("."));
+        // 合并后的文件路径
+        String mergeFilePath = "uploads/" + fileMd5 + extName;
+
+        // 1. 创建合并后的文件
+        File mergeFile = new File(mergeFilePath);
+        try (RandomAccessFile rafWrite = new RandomAccessFile(mergeFile, "rw")) {
+            // 2. 依次读取每个分块文件，写入合并文件
+            for (int i = 0; i < chunkTotal; i++) {
+                File chunkFile = new File(chunkFileFolderPath + i);
+                if (!chunkFile.exists()) {
+                    return RestResponse.validfail("分块文件缺失：" + i);
+                }
+                try (RandomAccessFile rafRead = new RandomAccessFile(chunkFile, "r")) {
+                    byte[] buffer = new byte[1024 * 1024];
+                    int len;
+                    while ((len = rafRead.read(buffer)) != -1) {
+                        rafWrite.write(buffer, 0, len);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return RestResponse.validfail("合并文件失败：" + e.getMessage());
+        }
+//        // 3.上传到oss
+        try (FileInputStream fis = new FileInputStream(mergeFile)) {
+            MultipartFile multipartFile = new MockMultipartFile(
+                    mergeFile.getName(), // 文件名
+                    mergeFile.getName(), // 原始文件名
+                    null,                // contentType
+                    fis                  // 文件流
+            );
+            uploadFile(companyId, uploadFileParamsDto, multipartFile);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+//        4. 删除分块文件（可选）
+        for (int i = 0; i < chunkTotal; i++) {
+            File chunkFile = new File(chunkFileFolderPath + i);
+            chunkFile.delete();
+        }
+
+        // 5. 返回成功
+        return RestResponse.success("合并成功");
     }
 
     private String getChunkFileFolderPath(String fileMd5) {

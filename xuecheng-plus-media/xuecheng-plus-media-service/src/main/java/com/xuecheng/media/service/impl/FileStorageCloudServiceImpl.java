@@ -1,19 +1,12 @@
 package com.xuecheng.media.service.impl;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.xuecheng.base.model.RestResponse;
+
+
 import com.xuecheng.media.config.FileCloudConfig;
 import com.xuecheng.media.service.IFileStorageService;
 import lombok.extern.slf4j.Slf4j;
-//import net.lab1024.sa.common.common.code.SystemErrorCode;
-//import net.lab1024.sa.common.common.domain.ResponseDTO;
-//import net.lab1024.sa.common.module.support.file.constant.FileFolderTypeEnum;
-//import net.lab1024.sa.common.module.support.file.domain.vo.FileDownloadVO;
-//import net.lab1024.sa.common.module.support.file.domain.vo.FileMetadataVO;
-//import net.lab1024.sa.common.module.support.file.domain.vo.FileUploadVO;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,11 +117,11 @@ public class FileStorageCloudServiceImpl implements IFileStorageService {
      * @return
      */
     @Override
-    public RestResponse<String> getFileUrl(String fileKey) {
+    public String getFileUrl(String fileKey) {
         if (StringUtils.isBlank(fileKey)) {
-            return RestResponse.validfail("fileKey错误");
+            return "";
         }
-        return RestResponse.success(cloudConfig.getPublicUrl() + fileKey);
+        return cloudConfig.getPublicUrl() + fileKey;
 
     }
 

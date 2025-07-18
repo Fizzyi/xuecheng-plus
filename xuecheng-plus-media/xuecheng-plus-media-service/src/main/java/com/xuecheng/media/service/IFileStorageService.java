@@ -1,7 +1,6 @@
 package com.xuecheng.media.service;
 
 
-import com.xuecheng.base.model.RestResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,7 +36,7 @@ public interface IFileStorageService {
      * @param fileKey
      * @return
      */
-    RestResponse<String> getFileUrl(String fileKey);
+    String getFileUrl(String fileKey);
 
     /**
      * 流式下载（名称为原文件）
