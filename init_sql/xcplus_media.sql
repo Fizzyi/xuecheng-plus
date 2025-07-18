@@ -74,6 +74,7 @@ CREATE TABLE `media_process` (
   `status` varchar(12) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '状态,1:未处理，2：处理成功  3处理失败',
   `create_date` datetime NOT NULL COMMENT '上传时间',
   `finish_date` datetime DEFAULT NULL COMMENT '完成时间',
+  `fail_count` int DEFAULT 0 COMMENT '失败次数',
   `url` varchar(1024) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '媒资文件访问地址',
   `errormsg` varchar(1024) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '失败原因',
   PRIMARY KEY (`id`) USING BTREE,
@@ -98,7 +99,7 @@ DROP TABLE IF EXISTS `media_process_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `media_process_history` (
-  `id` bigint NOT NULL,
+  `id` bigint NOT NULL AUTO_INCREMENT,
   `file_id` varchar(120) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '文件标识',
   `filename` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '文件名称',
   `bucket` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '存储源',
@@ -106,6 +107,7 @@ CREATE TABLE `media_process_history` (
   `create_date` datetime NOT NULL COMMENT '上传时间',
   `finish_date` datetime NOT NULL COMMENT '完成时间',
   `url` varchar(1024) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '媒资文件访问地址',
+  `fail_count` int DEFAULT 0 COMMENT '失败次数',
   `file_path` varchar(512) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '文件路径',
   `errormsg` varchar(1024) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '失败原因',
   PRIMARY KEY (`id`) USING BTREE
