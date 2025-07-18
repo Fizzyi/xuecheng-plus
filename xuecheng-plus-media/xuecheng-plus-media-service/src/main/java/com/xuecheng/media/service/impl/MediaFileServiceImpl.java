@@ -24,6 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -117,30 +121,40 @@ public class MediaFileServiceImpl implements MediaFileService {
      */
     @Override
     public RestResponse<Boolean> checkChunk(String fileMd5, int chunkIndex) {
-        MediaFiles mediaFiles = mediaFilesMapper.selectById(DigestUtils.md5Hex(fileMd5 + chunkIndex));
-        if (mediaFiles != null) {
-            // 判断文件是否存在
-            return RestResponse.success(true);
-        }
-        return RestResponse.success(false);
+        String uploadDir = "uploads/" + fileMd5 + "/" + chunkIndex;
+        File file = new File(uploadDir);
+        return RestResponse.success(file.exists());
+
     }
 
     @Override
     public RestResponse uploadChunk(String fileMd5, int chunk, MultipartFile file) {
-//        //得到分块文件的目录路径
-//        String chunkFileFolderPath = getChunkFileFolderPath(fileMd5);
-//        //得到分块文件的路径
-//        String chunkFilePath = chunkFileFolderPath + chunk;
-        //将文件存储至oss
-        String fileKey = "test/" + fileMd5 + "/" + chunk;
-        log.info("分块序号：{},路径：{}", chunk, fileKey);
-        fileStorageService.fileUpload(file, fileKey);
-        UploadFileParamsDto dto = new UploadFileParamsDto();
-        dto.setFilename(fileKey);
-        String chunkFileMd5 = DigestUtils.md5Hex(fileMd5 + chunk);
-        // 将文件信息保存到数据库
-        MediaFiles mediaFiles = addMediaFilesToDb(0L, chunkFileMd5, dto, "", fileKey);
-        return RestResponse.success(true);
+        // 构建保存文件的路径，这里假设以文件MD5值和分块序号构建路径
+        String uploadDir = "uploads/" + fileMd5 + "/" + chunk;
+        Path uploadPath = Paths.get(uploadDir);
+
+        try {
+            // 创建目录，如果父目录不存在也一同创建
+            Files.createDirectories(uploadPath);
+
+            // 构建完整的文件路径
+            Path filePath = uploadPath;
+
+            // 将MultipartFile保存到指定路径
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            log.info("文件块 {} 保存成功，路径为: {}", chunk, filePath);
+            return RestResponse.success(true);
+
+        } catch (IOException e) {
+            log.error("保存文件块 {} 时出错", chunk, e);
+            return RestResponse.validfail("文件块保存失败");
+        }
+    }
+
+    @Override
+    public RestResponse mergeChunks(Long companyId, String fileMd5, int chunkTotal, UploadFileParamsDto uploadFileParamsDto) {
+        return null;
     }
 
     private String getChunkFileFolderPath(String fileMd5) {
