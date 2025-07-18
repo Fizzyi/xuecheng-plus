@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.config.FileCloudConfig;
 import com.xuecheng.media.service.IFileStorageService;
 import lombok.extern.slf4j.Slf4j;
@@ -67,11 +68,10 @@ public class FileStorageCloudServiceImpl implements IFileStorageService {
     private static final String USER_METADATA_FILE_SIZE = "file-size";
 
     @Override
-    public Boolean fileUpload(MultipartFile file, String path) {
+    public Boolean fileUpload(MultipartFile file, String fileKey) {
         // 设置文件 key
         String originalFilename = file.getOriginalFilename();
         String fileType = FilenameUtils.getExtension(originalFilename);
-        String fileKey = path + this.generateFileName(originalFilename);
         // 文件名称 URL 编码
         String urlEncoderFilename;
         try {
@@ -90,7 +90,6 @@ public class FileStorageCloudServiceImpl implements IFileStorageService {
         meta.setUserMetadata(userMetadata);
         meta.setContentLength(file.getSize());
         meta.setContentType(this.getContentType(fileType));
-        // todo 完善文件上传
         try {
             log.info("上传日志：{},{},{}", cloudConfig.getBucketName(), fileKey, meta);
             amazonS3.putObject(cloudConfig.getBucketName(), fileKey, file.getInputStream(), meta);
@@ -124,26 +123,14 @@ public class FileStorageCloudServiceImpl implements IFileStorageService {
      * @param fileKey
      * @return
      */
-//    @Override
-//    public ResponseDTO<String> getFileUrl(String fileKey) {
-//        if (StringUtils.isBlank(fileKey)) {
-//            return ResponseDTO.userErrorParam();
-//        }
-//        if (!fileKey.startsWith(FileFolderTypeEnum.FOLDER_PRIVATE)) {
-//            // 不是私有的 都公共读
-//            String encodedPath = "";
-//            try {
-//                encodedPath = URLEncoder.encode(fileKey.split("/")[2], StandardCharsets.UTF_8.name());
-//            } catch (UnsupportedEncodingException e) {
-//                throw new RuntimeException(e);
-//            }
-//            return ResponseDTO.ok(cloudConfig.getPublicUrl() + fileKey.split("/")[0] + "/" + fileKey.split("/")[1] + "/" + encodedPath);
-//        }
-//        Date expiration = new Date(System.currentTimeMillis() + cloudConfig.getUrlExpire());
-//        URL url = amazonS3.generatePresignedUrl(cloudConfig.getBucketName(), fileKey, expiration);
-//        String urlStr = url.toString().replace("http://", "https://");
-//        return ResponseDTO.ok(urlStr);
-//    }
+    @Override
+    public RestResponse<String> getFileUrl(String fileKey) {
+        if (StringUtils.isBlank(fileKey)) {
+            return RestResponse.validfail("fileKey错误");
+        }
+        return RestResponse.success(cloudConfig.getPublicUrl() + fileKey);
+
+    }
 
     /**
      * 流式下载（名称为原文件）

@@ -2,14 +2,12 @@ package com.xuecheng.media.service;
 
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 /**
  * @author Mr.M
@@ -27,7 +25,7 @@ public interface MediaFileService {
      * @author Mr.M
      * @date 2022/9/10 8:57
      */
-    public PageResult<MediaFiles> queryMediaFiels(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto);
+    public PageResult<MediaFiles> queryMediaFiles(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto);
 
 
     /**
@@ -35,8 +33,35 @@ public interface MediaFileService {
      *
      * @param companyId           机构Id
      * @param uploadFileParamsDto 上传文件信息
-     * @param file       文件磁盘路径
+     * @param file                文件磁盘路径
      * @return 文件信息
      */
     public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, MultipartFile file);
+
+    /**
+     * 检查文件是否存在
+     *
+     * @param fileMd5 文件的md5
+     * @return true:存在 false:不存在
+     */
+    public RestResponse<Boolean> checkFile(String fileMd5);
+
+    /**
+     * 检查分块是否存在
+     *
+     * @param fileMd5    文件的md5
+     * @param chunkIndex 分块序号
+     * @return true:存在 false:不存在
+     */
+    public RestResponse<Boolean> checkChunk(String fileMd5, int chunkIndex);
+
+    /**
+     * 上传分块
+     *
+     * @param fileMd5   文件md5
+     * @param chunk     分块序号
+     * @param chunkFile 分块文件本地路径
+     * @return RestResponse
+     */
+    public RestResponse uploadChunk(String fileMd5, int chunk, MultipartFile chunkFile);
 }
