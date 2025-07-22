@@ -1,11 +1,16 @@
 package com.xuecheng.media.service.impl;
+
+import com.j256.simplemagic.ContentInfoUtil;
+import com.j256.simplemagic.ContentInfo;
+import com.xuecheng.base.model.RestResponse;
+import com.xuecheng.media.mapper.MediaProcessMapper;
+import com.xuecheng.media.model.po.MediaProcess;
 import org.springframework.mock.web.MockMultipartFile;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuecheng.base.execption.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
-import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaFilesMapper;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
@@ -45,6 +50,9 @@ import java.util.UUID;
 public class MediaFileServiceImpl implements MediaFileService {
 
     @Autowired
+    MediaProcessMapper mediaProcessMapper;
+
+    @Autowired
     MediaFilesMapper mediaFilesMapper;
 
     @Autowired
@@ -71,6 +79,7 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     @Override
+    @Transactional
     public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, MultipartFile file) {
         // 文件名称
         String filename = uploadFileParamsDto.getFilename();
@@ -221,7 +230,6 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param objectName
      * @return
      */
-    @Transactional
     public MediaFiles addMediaFilesToDb(Long companyId, String fileMd5, UploadFileParamsDto dto, String objectName, String fileKey) {
         MediaFiles mediaFile = mediaFilesMapper.selectById(fileMd5);
         if (mediaFile == null) {
@@ -235,15 +243,36 @@ public class MediaFileServiceImpl implements MediaFileService {
             mediaFile.setCreateDate(LocalDateTime.now());
             mediaFile.setAuditStatus("002003");
             mediaFile.setStatus("1");
+            mediaFile.setBucket("123");
             int insert = mediaFilesMapper.insert(mediaFile);
             if (insert != 1) {
                 throw new XueChengPlusException("保存文件信息失败");
             }
+            //添加到待处理任务表
+            addWaitingTask(mediaFile);
             log.info("保存文件信息成功，文件id：{}", mediaFile.getId());
         }
         return mediaFile;
     }
 
+
+    /**
+     * 添加待处理任务
+     *
+     * @param mediaFiles 媒资文件信息
+     */
+    private void addWaitingTask(MediaFiles mediaFiles) {
+        String mimeType = getMimeType(mediaFiles.getFileId().substring(mediaFiles.getFileId().lastIndexOf(".")+1));
+        log.info("mimeType:{}", mimeType);
+        if (mimeType.equals("application/octet-stream")) {
+            MediaProcess mediaProcess = new MediaProcess();
+            BeanUtils.copyProperties(mediaFiles, mediaProcess);
+            mediaProcess.setStatus("1"); // 默认未处理
+            mediaProcess.setFailCount(0); // 失败次数默认为0
+            mediaProcessMapper.insert(mediaProcess);
+        }
+
+    }
 
     private String getDefaultFolderPath() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -260,7 +289,16 @@ public class MediaFileServiceImpl implements MediaFileService {
 
 
     private String getMimeType(String extension) {
-        return MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        if (extension == null) {
+            return null;
+        }
+        ContentInfo extensionMatch = ContentInfoUtil.findExtensionMatch(extension);
+        //通用mimeType 字节流
+        String mimeType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        if (extensionMatch != null) {
+            mimeType = extensionMatch.getMimeType();
+        }
+        return mimeType;
     }
 
 
