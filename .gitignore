@@ -31,4 +31,4 @@ logs/
 
 ### VS Code ###
 .vscode/
-*.log
+/file
