@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.base.execption.XueChengPlusException;
 import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.mapper.TeachplanMediaMapper;
+import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.dto.TeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
@@ -113,6 +114,29 @@ public class TeachplanServiceImpl implements TeachplanService {
         teachplan1.setOrderby(orderby);
         teachplanMapper.updateById(teachplan1);
         teachplanMapper.updateById(teachplan);
+    }
+
+    @Transactional
+    @Override
+    public TeachplanMedia associationMedia(BindTeachplanMediaDto dto) {
+        Teachplan teachplan = teachplanMapper.selectById(dto.getTeachplanId());
+        if (teachplan == null) {
+            throw new XueChengPlusException("课程计划不存在");
+        }
+        if (teachplan.getGrade() != 2) {
+            throw new XueChengPlusException("只允许第二级教学计划绑定媒资文件");
+        }
+        // 先删除原来该教学计划绑定的媒资
+        teachplanMediaMapper.delete(new LambdaQueryWrapper<TeachplanMedia>().eq(TeachplanMedia::getTeachplanId, dto.getTeachplanId()));
+        //在添加新的绑定关系
+        TeachplanMedia teachplanMedia = new TeachplanMedia();
+        teachplanMedia.setCourseId(teachplan.getCourseId());
+        teachplanMedia.setTeachplanId(dto.getTeachplanId());
+        teachplanMedia.setMediaFilename(dto.getFileName());
+        teachplanMedia.setMediaId(dto.getMediaId());
+        teachplanMedia.setCreateDate(LocalDateTime.now());
+        teachplanMediaMapper.insert(teachplanMedia);
+        return teachplanMedia;
     }
 
     /**
