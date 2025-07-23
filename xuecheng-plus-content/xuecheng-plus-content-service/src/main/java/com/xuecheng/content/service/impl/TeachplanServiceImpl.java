@@ -139,6 +139,11 @@ public class TeachplanServiceImpl implements TeachplanService {
         return teachplanMedia;
     }
 
+    @Override
+    public void disassociationMedia(Long teachPlanId, String mediaId) {
+        teachplanMediaMapper.delete(new LambdaQueryWrapper<TeachplanMedia>().eq(TeachplanMedia::getTeachplanId, teachPlanId).eq(TeachplanMedia::getMediaId, mediaId));
+    }
+
     /**
      * 取出同父同级别的课程计划数量 用于设置排序号
      *

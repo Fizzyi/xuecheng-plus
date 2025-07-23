@@ -50,4 +50,10 @@ public class TeachplanController {
         teachplanService.associationMedia(dto);
     }
 
+    @ApiOperation("课程计划和媒资信息解绑")
+    @PostMapping("/teachplan/association/media/{teachPlanId}/mediaId/{mediaId}")
+    public void disassociationMedia(@PathVariable Long teachPlanId, @PathVariable String mediaId) {
+        teachplanService.disassociationMedia(teachPlanId, mediaId);
+    }
+
 }
