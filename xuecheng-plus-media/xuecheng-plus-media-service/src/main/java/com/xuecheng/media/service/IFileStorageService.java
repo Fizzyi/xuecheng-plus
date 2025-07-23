@@ -4,6 +4,7 @@ package com.xuecheng.media.service;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +31,8 @@ public interface IFileStorageService {
      */
     Boolean fileUpload(MultipartFile file, String path);
 
+    Boolean fileUpload(File file, String path);
+
     /**
      * 获取文件url
      *
@@ -44,7 +47,7 @@ public interface IFileStorageService {
      * @param key
      * @return
      */
-//    ResponseDTO<FileDownloadVO> fileDownload(String key);
+    File fileDownload(String key);
 
     /**
      * 单个删除文件
