@@ -32,3 +32,4 @@ logs/
 ### VS Code ###
 .vscode/
 /file
+/xc-ui-pc-static-portal
