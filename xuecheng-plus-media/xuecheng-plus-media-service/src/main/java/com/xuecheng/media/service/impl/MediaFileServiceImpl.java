@@ -217,6 +217,11 @@ public class MediaFileServiceImpl implements MediaFileService {
         return RestResponse.success("合并成功");
     }
 
+    @Override
+    public MediaFiles getFileById(String mediaId) {
+        return mediaFilesMapper.selectById(mediaId);
+    }
+
     private String getChunkFileFolderPath(String fileMd5) {
         return fileMd5.charAt(0) + "/" + fileMd5.charAt(1) + "/" + fileMd5 + "/chunk/";
     }
@@ -262,7 +267,7 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param mediaFiles 媒资文件信息
      */
     private void addWaitingTask(MediaFiles mediaFiles) {
-        String mimeType = getMimeType(mediaFiles.getFileId().substring(mediaFiles.getFileId().lastIndexOf(".")+1));
+        String mimeType = getMimeType(mediaFiles.getFileId().substring(mediaFiles.getFileId().lastIndexOf(".") + 1));
         log.info("mimeType:{}", mimeType);
         if (mimeType.equals("application/octet-stream")) {
             MediaProcess mediaProcess = new MediaProcess();
