@@ -35,12 +35,23 @@ public class CoursePublishController {
     /**
      * 提交课程审核接口
      *
-     * @param courseId  课程Id
+     * @param courseId 课程Id
      */
     @PostMapping("/courseaudit/commit/{courseId}")
     public void commitAudit(@PathVariable("courseId") Long courseId) {
-        Long companyId = 0L;
-        coursePublishService.commitAudit(companyId,courseId);
+        Long companyId = 1232141425L;
+        coursePublishService.commitAudit(companyId, courseId);
+    }
+
+    /**
+     * 课程发布接口
+     *
+     * @param courseId 课程Id
+     */
+    @PostMapping("/coursepublish/{courseId}")
+    public void coursePublish(@PathVariable("courseId") Long courseId) {
+        Long companyId = 1232141425L;
+        coursePublishService.coursePublish(companyId, courseId);
     }
 
 }

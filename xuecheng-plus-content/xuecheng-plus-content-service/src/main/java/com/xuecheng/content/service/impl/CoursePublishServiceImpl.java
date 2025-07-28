@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.xuecheng.base.execption.XueChengPlusException;
 import com.xuecheng.content.mapper.CourseBaseMapper;
 import com.xuecheng.content.mapper.CourseMarketMapper;
+import com.xuecheng.content.mapper.CoursePublishMapper;
 import com.xuecheng.content.mapper.CoursePublishPreMapper;
 import com.xuecheng.content.model.dto.CourseBaseInfoDto;
 import com.xuecheng.content.model.dto.CoursePreviewDto;
@@ -19,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +45,9 @@ public class CoursePublishServiceImpl implements CoursePublishService {
     @Autowired
     CoursePublishPreMapper coursePublishPreMapper;
 
+    @Autowired
+    CoursePublishMapper coursePublishMapper;
+
     @Override
     public CoursePreviewDto getCoursePreview(Long courseId) {
 
@@ -57,6 +62,7 @@ public class CoursePublishServiceImpl implements CoursePublishService {
         return coursePreviewDto;
     }
 
+    @Transactional
     @Override
     public void commitAudit(Long companyId, Long courseId) {
 //      功能：
@@ -108,5 +114,65 @@ public class CoursePublishServiceImpl implements CoursePublishService {
         courseBase.setAuditStatus("202003");
         courseBaseMapper.updateById(courseBase);
 
+    }
+
+    @Transactional
+    @Override
+    public void coursePublish(Long companyId, Long courseId) {
+        /*
+        功能：
+        1. 向课程发布表course_publish插入一条记录,记录来源于课程预发布表，如果存在则更新，发布状态为：已发布。
+        2. 更新course_base表的课程发布状态为：已发布
+        3. 删除课程预发布表的对应记录。
+        4. 向mq_message消息表插入一条消息，消息类型为：course_publish
+        约束：
+        1. 课程审核通过方可发布。
+        2. 本机构只允许发布本机构的课程。
+         */
+        CoursePublishPre coursePublishPre = coursePublishPreMapper.selectById(courseId);
+        if (coursePublishPre == null) {
+            XueChengPlusException.cast("课程预发布不存在");
+        }
+        if (!coursePublishPre.getCompanyId().equals(companyId)) {
+            XueChengPlusException.cast("不允许提交其他机构的课程");
+        }
+        if (!coursePublishPre.getStatus().equals("202004")) {
+            XueChengPlusException.cast("课程审核未通过，不能发布");
+        }
+        // 保存课程发布信息
+        saveCoursePublish(coursePublishPre);
+        // 保存消息表
+        saveCoursePublishMessage(courseId);
+        // 删除课程预发布表对应记录
+        coursePublishPreMapper.deleteById(courseId);
+    }
+
+    /**
+     * 保存消息表
+     *
+     * @param courseId 课程Id
+     */
+    private void saveCoursePublishMessage(Long courseId) {
+    }
+
+    /**
+     * 保存课程发布信息
+     *
+     * @param coursePublishPre 预检测
+     */
+    private void saveCoursePublish(CoursePublishPre coursePublishPre) {
+        CoursePublish coursePublish = new CoursePublish();
+        BeanUtils.copyProperties(coursePublishPre, coursePublish);
+        coursePublish.setStatus("203002");
+        CoursePublish coursePublishUpdate = coursePublishMapper.selectById(coursePublishPre.getId());
+        if (coursePublishUpdate != null) {
+            coursePublishMapper.updateById(coursePublish);
+        } else {
+            coursePublishMapper.insert(coursePublish);
+        }
+        // 更新课程基本信息表的发布状态
+        CourseBase courseBase = courseBaseMapper.selectById(coursePublishPre.getId());
+        courseBase.setStatus("203002");
+        courseBaseMapper.updateById(courseBase);
     }
 }
