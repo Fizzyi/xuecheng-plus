@@ -15,4 +15,6 @@ public interface CoursePublishService {
      * @return
      */
     public CoursePreviewDto getCoursePreview(Long courseId);
+
+    void commitAudit(Long companyId,Long courseId);
 }
