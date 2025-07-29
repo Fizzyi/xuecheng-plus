@@ -3,6 +3,8 @@ package com.xuecheng.content.service.jobhandler;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MessageProcessAbstract;
 import com.xuecheng.messagesdk.service.MqMessageService;
+import com.xxl.job.core.context.XxlJobHelper;
+import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +14,18 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 public class CoursePublishTask extends MessageProcessAbstract {
+
+
+    // 任务调度入口
+    @XxlJob("CoursePublishJobHandler")
+    public void coursePublishJobHandler() throws Exception {
+        int shardIndex = XxlJobHelper.getShardIndex();
+        int shardTotal = XxlJobHelper.getShardTotal();
+        log.info("分片序号：{},分片总数：{},消息类型：course_publish", shardIndex, shardTotal);
+        // 30 》 一次最多渠道的任务数量，60 》 一次任务调度执行的超时时间
+        process(shardIndex, shardTotal, "course_publish", 30, 60);
+    }
+
 
     /**
      * 课程发布任务处理
