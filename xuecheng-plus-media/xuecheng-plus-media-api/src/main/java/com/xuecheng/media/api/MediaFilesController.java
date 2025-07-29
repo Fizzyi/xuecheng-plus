@@ -47,7 +47,7 @@ public class MediaFilesController {
         dto.setFileType("001001");
         dto.setFilename(filedata.getOriginalFilename());
         dto.setFileSize(filedata.getSize());
-        return mediaFileService.uploadFile(companyId, dto, filedata);
+        return mediaFileService.uploadFile(companyId, dto, filedata, objectName);
     }
 
 }

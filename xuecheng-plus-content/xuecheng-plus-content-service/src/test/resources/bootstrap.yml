@@ -19,6 +19,9 @@ spring:
           - data-id: logging-${spring.profiles.active}.yaml # 指定日志配置
             group: xuecheng-plus-common
             refresh: true
+          - data-id: feign-${spring.profiles.active}.yaml # 指定fegin日志
+            group: xuecheng-plus-common
+            refresh: true
 
 #profiles默认为dev
   profiles:

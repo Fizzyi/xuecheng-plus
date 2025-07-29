@@ -5,6 +5,7 @@ import com.j256.simplemagic.ContentInfo;
 import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaProcessMapper;
 import com.xuecheng.media.model.po.MediaProcess;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.mock.web.MockMultipartFile;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -80,7 +81,7 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     @Override
     @Transactional
-    public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, MultipartFile file) {
+    public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, MultipartFile file, String objectName) {
         // 文件名称
         String filename = uploadFileParamsDto.getFilename();
         // 文件扩展名
@@ -89,15 +90,16 @@ public class MediaFileServiceImpl implements MediaFileService {
         String fileMd5 = getFileMd5(file);
         // 文件的默认路径
         String defaultFolderPath = getDefaultFolderPath();
-        // 存储到minio的对象名
-        String ObjectName = defaultFolderPath + fileMd5 + extension;
+        if (StringUtils.isEmpty(objectName)) {
+            objectName = defaultFolderPath + fileMd5 + extension;
+        }
         // 将文件上传到minio
         String fileKey = "test/" + generateFileName(filename);
         fileStorageService.fileUpload(file, fileKey);
         // 文件大小
         uploadFileParamsDto.setFileSize(file.getSize());
         // 将文件信息保存到数据库
-        MediaFiles mediaFiles = addMediaFilesToDb(companyId, fileMd5, uploadFileParamsDto, ObjectName, fileKey);
+        MediaFiles mediaFiles = addMediaFilesToDb(companyId, fileMd5, uploadFileParamsDto, objectName, fileKey);
         // 准备返回数据
         UploadFileResultDto uploadFileResultDto = new UploadFileResultDto();
         BeanUtils.copyProperties(mediaFiles, uploadFileResultDto);
@@ -200,7 +202,7 @@ public class MediaFileServiceImpl implements MediaFileService {
                     null,                // contentType
                     fis                  // 文件流
             );
-            uploadFile(companyId, uploadFileParamsDto, multipartFile);
+            uploadFile(companyId, uploadFileParamsDto, multipartFile, "");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

@@ -1,19 +1,27 @@
 package com.xuecheng.content.service.jobhandler;
 
+import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MessageProcessAbstract;
 import com.xuecheng.messagesdk.service.MqMessageService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
 @Component
 public class CoursePublishTask extends MessageProcessAbstract {
+
+
+    @Autowired
+    CoursePublishService coursePublishService;
 
 
     // 任务调度入口
@@ -75,10 +83,9 @@ public class CoursePublishTask extends MessageProcessAbstract {
             log.info("课程静态化已处理直接返回，课程Id：{}", courseId);
             return;
         }
-        try {
-            TimeUnit.SECONDS.sleep(10);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        File file = coursePublishService.generateCourseHtml(courseId);
+        if (file != null) {
+            coursePublishService.uploadCourseHtml(courseId, file);
         }
         // 保存第一阶段状态
         mqMessageService.completedStageOne(mqMessage.getId());

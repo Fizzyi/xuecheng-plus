@@ -31,5 +31,8 @@ spring:
           - data-id: freemarker-config-${spring.profiles.active}.yaml # 指定freemarker配置
             group: xuecheng-plus-common
             refresh: true
+          - data-id: feign-${spring.profiles.active}.yaml # 指定fegin日志
+            group: xuecheng-plus-common
+            refresh: true
   profiles:
     active: dev
