@@ -16,6 +16,8 @@ import com.xuecheng.content.model.po.CoursePublishPre;
 import com.xuecheng.content.service.CourseBaseInfoService;
 import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.content.service.TeachplanService;
+import com.xuecheng.messagesdk.service.MqMessageService;
+import com.xuecheng.messagesdk.model.po.MqMessage;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,9 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Autowired
     CoursePublishMapper coursePublishMapper;
+
+    @Autowired
+    MqMessageService mqMessageService;
 
     @Override
     public CoursePreviewDto getCoursePreview(Long courseId) {
@@ -153,6 +158,10 @@ public class CoursePublishServiceImpl implements CoursePublishService {
      * @param courseId 课程Id
      */
     private void saveCoursePublishMessage(Long courseId) {
+        MqMessage coursePublish = mqMessageService.addMessage("course_publish", String.valueOf(courseId), null, null);
+        if (coursePublish == null) {
+            XueChengPlusException.cast("保存消息表失败");
+        }
     }
 
     /**
