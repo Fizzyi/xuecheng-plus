@@ -1,0 +1,17 @@
+server:
+  port: 63080
+
+spring:
+  application:
+    name: search
+
+# Elasticsearch 配置
+elasticsearch:
+  hostlist: 127.0.0.1:9200
+  course:
+    index: course-publish
+
+# 日志配置
+logging:
+  level:
+    com.xuecheng.search: debug 

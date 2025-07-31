@@ -50,3 +50,10 @@ cap理论是指在分布式系统中，一致性（Consistency）、可用性（
 （3）分区容错性：在分布式系统中，节点之间可能会发生故障，需要保证系统的可用性。
 
 在分布式系统中进行分布式事务控制，要么保证cp（强一致性），要么保证ap（最终数据一致性）。
+
+
+5、es
+
+安装analysis-ik中文分词插件
+""""
+bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v8.17.0/elasticsearch-analysis-ik-8.17.0.zip
